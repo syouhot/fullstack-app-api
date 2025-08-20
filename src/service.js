@@ -4,8 +4,10 @@ import { db } from "./config/db.js"
 import { favoritesTable } from "./db/schema.js"
 import { and, eq } from "drizzle-orm"
 import job from "./config/cron.js"
+import cors from 'cors';
 
 const app = express()
+app.use(cors());
 const POST = env.POST || 5001
 
 if(env.NODE_ENV==="production") job.start()
@@ -17,12 +19,13 @@ app.get("/api/health", (req, res) => {
 })
 app.post("/api/favorites", async (req, res) => {
     try {
-        const { useId, recipeId, title, image, cookTime, servings } = req.body;
-        if (!useId || !recipeId || !title) {
+        const { userId, recipeId, title, image, cookTime, servings } = req.body;
+        
+        if (!userId || !recipeId || !title) {
             return res.status(400).json({ error: "缺少必填字段" })
         }
         const newFavorite = await db.insert(favoritesTable).values({
-            useId, recipeId, title, image, cookTime, servings
+            userId, recipeId, title, image, cookTime, servings
         }).returning()
         return res.status(201).json(newFavorite[0])
     } catch (error) {
